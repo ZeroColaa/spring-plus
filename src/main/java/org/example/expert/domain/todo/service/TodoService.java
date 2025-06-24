@@ -8,6 +8,7 @@ import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
 import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
 import org.example.expert.domain.todo.entity.Todo;
+import org.example.expert.domain.todo.repository.QTodoRepository;
 import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.user.dto.response.UserResponse;
 import org.example.expert.domain.user.entity.User;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 public class TodoService {
 
     private final TodoRepository todoRepository;
+    private final QTodoRepository qtodoRepository;
     private final WeatherClient weatherClient;
 
     public TodoSaveResponse saveTodo(AuthUser authUser, TodoSaveRequest todoSaveRequest) {
@@ -62,7 +64,7 @@ public class TodoService {
     ) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<Todo> todos = todoRepository. findTodosByWeather(weather, startModifiedAt, endModifiedAt, pageable);
+        Page<Todo> todos = todoRepository.findTodosByWeather(weather, startModifiedAt, endModifiedAt, pageable);
 
 
         return todos.map(todo -> {
@@ -98,7 +100,7 @@ public class TodoService {
 
     @Transactional(readOnly = true)
     public TodoResponse getTodo(long todoId) {
-        Todo todo = todoRepository.findByIdWithUser(todoId)
+        Todo todo = qtodoRepository.findByIdWithUserQueryDsl(todoId)
                 .orElseThrow(() -> new InvalidRequestException("Todo not found"));
 
         User user = todo.getUser();
