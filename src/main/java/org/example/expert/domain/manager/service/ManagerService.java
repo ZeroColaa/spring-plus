@@ -1,6 +1,7 @@
 package org.example.expert.domain.manager.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.manager.dto.request.ManagerSaveRequest;
 import org.example.expert.domain.manager.dto.response.ManagerResponse;
@@ -12,6 +13,7 @@ import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.user.dto.response.UserResponse;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.repository.UserRepository;
+import org.example.expert.log.service.LogService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -19,17 +21,28 @@ import org.springframework.util.ObjectUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class ManagerService {
 
     private final ManagerRepository managerRepository;
     private final UserRepository userRepository;
     private final TodoRepository todoRepository;
+    private final LogService logService;
 
-    @Transactional
+
     public ManagerSaveResponse saveManager(Long userId, long todoId, ManagerSaveRequest managerSaveRequest) {
+
+
+        // 로그 기록 (예외 무시)
+        try {
+            logService.save("매니저 등록 시도", todoId, userId);
+        } catch (Exception e) {
+            log.warn("로그 저장 실패: todoId={}, userId={}, err={}", todoId, userId, e.getMessage());
+        }
+
         // 일정을 만든 유저
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidRequestException("사용자를 찾을 수 없습니다."));
@@ -56,6 +69,7 @@ public class ManagerService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<ManagerResponse> getManagers(long todoId) {
         Todo todo = todoRepository.findById(todoId)
                 .orElseThrow(() -> new InvalidRequestException("Todo not found"));
@@ -73,7 +87,7 @@ public class ManagerService {
         return dtoList;
     }
 
-    @Transactional
+
     public void deleteManager(Long userId, long todoId, long managerId) {
 
         User user = userRepository.findById(userId)
