@@ -3,6 +3,7 @@ package org.example.expert.domain.todo.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
+import org.example.expert.domain.todo.dto.response.TodoQueryDslResponse;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
 import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
 import org.example.expert.domain.todo.service.TodoService;
@@ -29,12 +30,17 @@ public class TodoController {
         return ResponseEntity.ok(todoService.saveTodo(userPrincipal.getUserId(), todoSaveRequest));
     }
 
+
+    // 할 일 목록 검색: weather, 수정일 조건 필터링 가능
     @GetMapping("/todos")
     public ResponseEntity<Page<TodoResponse>> getTodos(
+            @RequestParam(required = false) String weather,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startModifiedAt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endModifiedAt,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(todoService.getTodos(page, size));
+        return ResponseEntity.ok(todoService.getTodosByWeather(weather, startModifiedAt, endModifiedAt, page, size));
     }
 
     @GetMapping("/todos/{todoId}")
@@ -43,15 +49,20 @@ public class TodoController {
     }
 
 
-    // 할 일 목록 검색: weather, 수정일 조건 필터링 가능
+
+
     @GetMapping("/todos/search")
-    public ResponseEntity<Page<TodoResponse>> searchTodosByWeather(
-            @RequestParam(required = false) String weather,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startModifiedAt,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endModifiedAt,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        return ResponseEntity.ok(todoService.getTodosByWeather(weather, startModifiedAt, endModifiedAt, page, size));
+    public ResponseEntity<Page<TodoQueryDslResponse>> searchTodos(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String nickname,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @RequestParam(defaultValue = "1")  int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(
+                todoService.searchTodos(title, nickname, start, end, page, size));
     }
 }
