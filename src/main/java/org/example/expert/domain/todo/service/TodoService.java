@@ -27,7 +27,6 @@ import java.time.LocalDateTime;
 public class TodoService {
 
     private final TodoRepository todoRepository;
-    private final QTodoRepository qtodoRepository;
     private final WeatherClient weatherClient;
     private final UserRepository userRepository;
 
@@ -104,7 +103,7 @@ public class TodoService {
     @Transactional(readOnly = true)
     public TodoResponse getTodo(long todoId) {
 
-        Todo todo = qtodoRepository.findByIdWithUserQueryDsl(todoId)
+        Todo todo = todoRepository.findByIdWithUserQueryDsl(todoId)
                 .orElseThrow(() -> new InvalidRequestException("Todo not found"));
 
         User user = todo.getUser();
@@ -126,7 +125,7 @@ public class TodoService {
             int page, int size) {
 
         Pageable pageable = PageRequest.of(page - 1, size);
-        return  qtodoRepository.searchTodos(title, nickname, start, end, pageable);
+        return  todoRepository.searchTodos(title, nickname, start, end, pageable);
     }
 
 }

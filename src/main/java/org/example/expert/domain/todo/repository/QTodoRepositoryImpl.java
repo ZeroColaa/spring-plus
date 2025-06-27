@@ -1,5 +1,6 @@
 package org.example.expert.domain.todo.repository;
 
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +27,7 @@ public class QTodoRepositoryImpl implements QTodoRepository{
 
     private final JPAQueryFactory queryFactory;
 
+    //static 메서드가 인스턴스화 될 때 올라간다 Quser 메서드 안에 선언 static으로 꺼낼때도 있다
 
     @Override
     public Optional<Todo> findByIdWithUserQueryDsl(Long todoId) {
@@ -73,19 +76,22 @@ public class QTodoRepositoryImpl implements QTodoRepository{
 
 
         //countQuery
-        Long total = queryFactory
+        JPAQuery<Long> countQuery = queryFactory
                 .select(todo.countDistinct())
-                .from(todo)
-                .innerJoin(todo.managers, manager)
-                .innerJoin(todo.user, user)
-                .where(
-                        titleContains(title),
-                        nicknameContains(nickname),
-                        createdAfter(start),
-                        createdBefore(end))
-                        .fetchOne();
+                .from(todo);
 
+        if (StringUtils.hasText(nickname)) {
+            countQuery.innerJoin(todo.user, user);
+        }
 
+        countQuery.where(
+                titleContains(title),
+                nicknameContains(nickname),
+                createdAfter(start),
+                createdBefore(end)
+        );
+
+        Long total = countQuery.fetchOne();
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
 
     }
