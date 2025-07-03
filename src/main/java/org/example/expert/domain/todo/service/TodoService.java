@@ -8,7 +8,6 @@ import org.example.expert.domain.todo.dto.response.TodoQueryDslResponse;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
 import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
 import org.example.expert.domain.todo.entity.Todo;
-import org.example.expert.domain.todo.repository.QTodoRepository;
 import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.user.dto.response.UserResponse;
 import org.example.expert.domain.user.entity.User;
@@ -119,13 +118,14 @@ public class TodoService {
         );
     }
 
+    @Transactional(readOnly = true)
     public Page<TodoQueryDslResponse> searchTodos(
             String title, String nickname,
             LocalDateTime start, LocalDateTime end,
             int page, int size) {
 
         Pageable pageable = PageRequest.of(page - 1, size);
-        return  todoRepository.searchTodos(title, nickname, start, end, pageable);
+        return todoRepository.searchTodos(title, nickname, start, end, pageable);
     }
 
 }
