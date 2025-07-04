@@ -13,6 +13,14 @@ import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.Statement;
 
+
+
+
+@SpringBootTest
+@ActiveProfiles("test")
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@RequiredArgsConstructor
+@Slf4j
 class BulkInsertTest {
 
     private final DataSource ds;
